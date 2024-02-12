@@ -59,13 +59,14 @@ class Float8DynamicLinear(torch.nn.Linear):
     conversion to fp8 of the input and weight tensors.
     """
 
-    def __init__(self, use_activation_hooks: bool, **super_kwargs):
+    def __init__(self, use_activation_hooks: bool = False, emulate: bool = False, **super_kwargs):
         """
         Args:
             use_activation_hooks (bool): whether to use activation hooks for casting to and from float8
         """
         super().__init__(**super_kwargs)
 
+        self.emulate = emulate
         self.use_activation_hooks = use_activation_hooks
 
     def forward(self, x):
