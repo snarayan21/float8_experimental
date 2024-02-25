@@ -36,13 +36,20 @@ def implements(aten_ops):
         aten.clone.default,
         aten.detach.default,
         aten.isnan.default,
-        aten._is_any_true.default,
-        aten._local_scalar_dense.default,
     ]
 )
 def float8_desugar_op(aten_op, args, kwargs=None):
     new_data = aten_op(args[0]._data, *args[1:], **kwargs)
     return Float8Tensor(new_data, args[0]._scale, args[0]._orig_dtype, args[0]._emulate)
+
+@implements(
+    [
+        aten._is_any_true.default,
+        aten._local_scalar_dense.default,
+    ]
+)
+def float8_bool_scalar_op(aten_op, args, kwargs=None):
+    return aten_op(args[0]._data, *args[1:], **kwargs)
 
 
 @implements([aten.sum.dim_IntList])
