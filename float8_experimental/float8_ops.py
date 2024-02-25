@@ -36,6 +36,7 @@ def implements(aten_ops):
         aten.clone.default,
         aten.detach.default,
         aten.isnan.default,
+        aten._is_any_true.default,
     ]
 )
 def float8_desugar_op(aten_op, args, kwargs=None):
