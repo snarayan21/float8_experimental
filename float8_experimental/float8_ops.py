@@ -72,60 +72,60 @@ def float8_cast_up_op(aten_op, args, kwargs=None):
     return aten_op(*new_args, **new_kwargs)
 
 
-def preprocess_addmm(a: Float8Tensor, b: Float8Tensor):
-    a_data = a._data
-    a_scale = a._scale
-    b_data = b._data
+# def preprocess_addmm(a: Float8Tensor, b: Float8Tensor):
+#     a_data = a._data
+#     a_scale = a._scale
+#     b_data = b._data
 
-    if not is_row_major(a_data.stride()):
-        a_data = a_data.contiguous()
-    if is_row_major(b_data.stride()):
-        b_data = b_data.t().contiguous().t()
-    b_scale = b._scale
-    return a_data, a_scale, b_data, b_scale
-
-
-@implements([aten.mm.default])
-def float8_mm(aten_op, args, kwargs=None):
-    assert isinstance(args[0], Float8Tensor) and isinstance(args[1], Float8Tensor)
-    a = args[0]
-    b = args[1]
-    a_data, a_scale, b_data, b_scale = preprocess_addmm(a, b)
-    output_dtype = a._orig_dtype
-    if a._emulate:
-        assert a._emulate == b._emulate
-        return torch.ops.aten.mm_float8_emulated(
-            a._data, a._scale, b._data, b._scale, output_dtype
-        )[0]
-    tensor_out, amax = addmm_float8_unwrapped(
-        a_data, a_scale, b_data, b_scale, output_dtype, output_scale=None, bias=None
-    )
-    return tensor_out
+#     if not is_row_major(a_data.stride()):
+#         a_data = a_data.contiguous()
+#     if is_row_major(b_data.stride()):
+#         b_data = b_data.t().contiguous().t()
+#     b_scale = b._scale
+#     return a_data, a_scale, b_data, b_scale
 
 
-@implements([aten.addmm.default])
-def float8_addmm(aten_op, args, kwargs=None):
-    assert (
-        isinstance(args[0], torch.Tensor)
-        and isinstance(args[1], Float8Tensor)
-        and isinstance(args[2], Float8Tensor)
-    )
-    bias = args[0]
-    a = args[1]
-    b = args[2]
-    a_data, a_scale, b_data, b_scale = preprocess_addmm(a, b)
-    output_dtype = a._orig_dtype
-    assert bias.dtype == output_dtype, "bias dtype must match output dtype"
-    if a._emulate:
-        assert a._emulate == b._emulate
-        out = torch.ops.aten.mm_float8_emulated(
-            a._data, a._scale, b._data, b._scale, output_dtype
-        )[0]
-        return out + bias
-    tensor_out, amax = addmm_float8_unwrapped(
-        a_data, a_scale, b_data, b_scale, output_dtype, output_scale=None, bias=bias
-    )
-    return tensor_out
+# @implements([aten.mm.default])
+# def float8_mm(aten_op, args, kwargs=None):
+#     assert isinstance(args[0], Float8Tensor) and isinstance(args[1], Float8Tensor)
+#     a = args[0]
+#     b = args[1]
+#     a_data, a_scale, b_data, b_scale = preprocess_addmm(a, b)
+#     output_dtype = a._orig_dtype
+#     if a._emulate:
+#         assert a._emulate == b._emulate
+#         return torch.ops.aten.mm_float8_emulated(
+#             a._data, a._scale, b._data, b._scale, output_dtype
+#         )[0]
+#     tensor_out, amax = addmm_float8_unwrapped(
+#         a_data, a_scale, b_data, b_scale, output_dtype, output_scale=None, bias=None
+#     )
+#     return tensor_out
+
+
+# @implements([aten.addmm.default])
+# def float8_addmm(aten_op, args, kwargs=None):
+#     assert (
+#         isinstance(args[0], torch.Tensor)
+#         and isinstance(args[1], Float8Tensor)
+#         and isinstance(args[2], Float8Tensor)
+#     )
+#     bias = args[0]
+#     a = args[1]
+#     b = args[2]
+#     a_data, a_scale, b_data, b_scale = preprocess_addmm(a, b)
+#     output_dtype = a._orig_dtype
+#     assert bias.dtype == output_dtype, "bias dtype must match output dtype"
+#     if a._emulate:
+#         assert a._emulate == b._emulate
+#         out = torch.ops.aten.mm_float8_emulated(
+#             a._data, a._scale, b._data, b._scale, output_dtype
+#         )[0]
+#         return out + bias
+#     tensor_out, amax = addmm_float8_unwrapped(
+#         a_data, a_scale, b_data, b_scale, output_dtype, output_scale=None, bias=bias
+#     )
+#     return tensor_out
 
 
 @implements([aten.is_same_size.default])
