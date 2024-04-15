@@ -41,7 +41,6 @@ def addmm_float8_unwrapped(
             scale_a=a_inverse_scale,
             scale_b=b_inverse_scale,
             scale_result=output_scale,
-            use_fast_accum=True,
         )
         output += bias
         return output, output_amax
@@ -53,7 +52,6 @@ def addmm_float8_unwrapped(
         scale_a=a_inverse_scale,
         scale_b=b_inverse_scale,
         scale_result=output_scale,
-        use_fast_accum=True,
     )
     return output, output_amax
 
